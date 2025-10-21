@@ -1,0 +1,91 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Artist {
+  id           String    @id @default(uuid())
+  stage_name   String
+  slug         String    @unique
+  country_code String?
+  genres       String[]
+  short_bio    String?
+  photo_url    String?
+  releases     Release[]
+
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  Credit       Credit[]
+  ExternalLink ExternalLink[]
+  MediaAsset   MediaAsset[]
+}
+
+model Release {
+  id           String    @id @default(uuid())
+  title        String
+  release_date DateTime?
+  cover_url    String?
+  artist       Artist    @relation(fields: [artistId], references: [id])
+  artistId     String
+  tracks       Track[]
+  credits      Credit[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Track {
+  id        String   @id @default(uuid())
+  title     String
+  duration  Int?
+  release   Release? @relation(fields: [releaseId], references: [id])
+  releaseId String?
+  credits   Credit[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Credit {
+  id        String   @id @default(uuid())
+  role      Role
+  artist    Artist   @relation(fields: [artistId], references: [id])
+  artistId  String
+  release   Release? @relation(fields: [releaseId], references: [id])
+  releaseId String?
+  track     Track?   @relation(fields: [trackId], references: [id])
+  trackId   String?
+}
+
+model ExternalLink {
+  id       String @id @default(uuid())
+  label    String
+  url      String
+  artist   Artist @relation(fields: [artistId], references: [id])
+  artistId String
+
+  created_at DateTime @default(now())
+}
+
+model MediaAsset {
+  id       String @id @default(uuid())
+  artist   Artist @relation(fields: [artistId], references: [id])
+  artistId String
+  kind     String // image ou video
+  url      String
+
+  created_at DateTime @default(now())
+}
+
+enum Role {
+  PERFORMER
+  PRODUCER
+  MIX_ENGINEER
+  MARKETING_ENGINEER
+  ARRANGER
+}
